@@ -4,6 +4,12 @@ import java.time.Year;
 
 public class AccountUtils {
 
+    public static final String account_already_exists_code="001";
+    public static final String account_already_exists_message="User already exists";
+    public static final String account_created_code="000";
+    public static final String account_created_message="Account has been successfully created";
+
+
     public static String accountNumberGenerator() {
         //11-digit account number
         //current year + random 7 digits

@@ -7,3 +7,4 @@ public interface UserService {
 
     BankResponse createAccount(UserReq userReq);
 }
+

@@ -16,7 +16,7 @@ public class UserReq {
     private String otherName;
     private String gender;
     private String address;
-    private String emailId;
+    private String email;
     private String location;
     private String phoneNumber;
     private String alternativePhoneNumber;
