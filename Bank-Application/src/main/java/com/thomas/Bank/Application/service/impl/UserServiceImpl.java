@@ -2,6 +2,7 @@ package com.thomas.Bank.Application.service.impl;
 
 import com.thomas.Bank.Application.dto.AccountInfo;
 import com.thomas.Bank.Application.dto.BankResponse;
+import com.thomas.Bank.Application.dto.EmailDetails;
 import com.thomas.Bank.Application.dto.UserReq;
 import com.thomas.Bank.Application.entity.User;
 import com.thomas.Bank.Application.repository.UserRepository;
@@ -14,6 +15,8 @@ import java.math.BigDecimal;
 public class UserServiceImpl implements UserService {
     @Autowired
     UserRepository userRepo;
+    @Autowired
+    EmailService emailService;
     @Override
     public BankResponse createAccount(UserReq userReq) {
 
@@ -47,6 +50,21 @@ public class UserServiceImpl implements UserService {
 
            User savedUser = userRepo.save(newUser);
 
+           //sending email alert
+           EmailDetails emailDetails = EmailDetails.builder()
+                   .recipient(savedUser.getEmail())
+                   .subject("Account Creation of "+savedUser.getFirstName()+" "+savedUser.getLastName())
+                   .messageBody("Thank you for creating an account with us.\n" +
+                           "Your account details are : \n" +
+                           "Account Holder Name :"+savedUser.getFirstName()+" "+savedUser.getLastName()+"\n"+
+                           "Account Email Id :"+savedUser.getEmail()+"\n"+
+                           "Account Number :"+savedUser.getAccountNumber()+"\n"+
+                           "Phone Number :"+savedUser.getPhoneNumber()+"\n"+
+                           "Account Balance :"+savedUser.getAccountBalance())
+                   .attachment(null)
+                   .build();
+
+           emailService.sendEmailAlert(emailDetails);
 
            return BankResponse.builder()
                    .accountInfo(AccountInfo.builder()
