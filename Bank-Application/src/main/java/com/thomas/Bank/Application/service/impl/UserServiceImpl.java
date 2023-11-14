@@ -100,10 +100,24 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
     }
+//name enquiry
+    @Override
+    public String nameEnquiry(EnquiryRequest enquiryRequest) {
+
+        //checking if account exists
+        boolean isAccountExists = userRepo.existsByAccountNumber(enquiryRequest.getAccountNumber());
+        if(!isAccountExists){
+            return AccountUtils.account_does_not_exist_message;
+        }
+        else{
+            User userExists = userRepo.findByAccountNumber(enquiryRequest.getAccountNumber());
+            return userExists.getFirstName()+" "+userExists.getLastName()+" "+userExists.getOtherName();
+        }
+
+    }
 
 
-
-    //name enquiry,credit,debit and transfer
+    //credit,debit and transfer
 
 
 }

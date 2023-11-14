@@ -10,6 +10,8 @@ public interface UserService {
 
     BankResponse balanceEnquiry(EnquiryRequest enquiryRequest);
 
+    String nameEnquiry(EnquiryRequest enquiryRequest);
+
 
 }
 
