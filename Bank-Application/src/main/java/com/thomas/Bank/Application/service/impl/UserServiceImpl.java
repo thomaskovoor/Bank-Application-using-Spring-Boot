@@ -1,9 +1,6 @@
 package com.thomas.Bank.Application.service.impl;
 
-import com.thomas.Bank.Application.dto.AccountInfo;
-import com.thomas.Bank.Application.dto.BankResponse;
-import com.thomas.Bank.Application.dto.EmailDetails;
-import com.thomas.Bank.Application.dto.UserReq;
+import com.thomas.Bank.Application.dto.*;
 import com.thomas.Bank.Application.entity.User;
 import com.thomas.Bank.Application.repository.UserRepository;
 import com.thomas.Bank.Application.utils.AccountUtils;
@@ -77,4 +74,36 @@ public class UserServiceImpl implements UserService {
                    .build();
        }
     }
+    //balance enquiry
+    @Override
+    public BankResponse balanceEnquiry(EnquiryRequest enquiryRequest) {
+
+        //checking if account exists
+        boolean isAccountExists = userRepo.existsByAccountNumber(enquiryRequest.getAccountNumber());
+        if(!isAccountExists){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.account_does_not_exist_code)
+                    .responseMessage(AccountUtils.account_does_not_exist_message)
+                    .accountInfo(null)
+                    .build();
+        }
+        else{
+            User userExists = userRepo.findByAccountNumber(enquiryRequest.getAccountNumber());
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.account_found_code)
+                    .responseMessage(AccountUtils.account_found_message)
+                    .accountInfo(AccountInfo.builder()
+                            .accountName(userExists.getFirstName()+" "+userExists.getLastName())
+                            .accountNumber(userExists.getAccountNumber())
+                            .accountBalance(userExists.getAccountBalance())
+                            .build())
+                    .build();
+        }
+    }
+
+
+
+    //name enquiry,credit,debit and transfer
+
+
 }
