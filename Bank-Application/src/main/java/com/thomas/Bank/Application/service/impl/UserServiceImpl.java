@@ -115,9 +115,35 @@ public class UserServiceImpl implements UserService {
         }
 
     }
+    //credit
+    @Override
+    public BankResponse creditAccount(CreditDebitRequest creditRequest) {
+        boolean isAccountExists = userRepo.existsByAccountNumber(creditRequest.getAccountNumber());
+        if(!isAccountExists){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.account_does_not_exist_code)
+                    .responseMessage(AccountUtils.account_does_not_exist_message)
+                    .accountInfo(null)
+                    .build();
+        }
+            User userToCredit = userRepo.findByAccountNumber(creditRequest.getAccountNumber());
+        userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(creditRequest.getAmount()));
+        userRepo.save(userToCredit);
+
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.account_credited_code)
+                    .responseMessage(AccountUtils.account_credited_message)
+                    .accountInfo(AccountInfo.builder()
+                            .accountName(userToCredit.getFirstName()+" "+userToCredit.getLastName())
+                            .accountNumber(userToCredit.getAccountNumber())
+                            .accountBalance(userToCredit.getAccountBalance())
+                            .build())
+                    .build();
+
+    }
 
 
-    //credit,debit and transfer
+    //,debit and transfer
 
 
 }
