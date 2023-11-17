@@ -1,9 +1,6 @@
 package com.thomas.Bank.Application.service.impl;
 
-import com.thomas.Bank.Application.dto.BankResponse;
-import com.thomas.Bank.Application.dto.CreditDebitRequest;
-import com.thomas.Bank.Application.dto.EnquiryRequest;
-import com.thomas.Bank.Application.dto.UserReq;
+import com.thomas.Bank.Application.dto.*;
 
 public interface UserService {
 
@@ -11,6 +8,9 @@ public interface UserService {
     BankResponse balanceEnquiry(EnquiryRequest enquiryRequest);
     String nameEnquiry(EnquiryRequest enquiryRequest);
     BankResponse creditAccount(CreditDebitRequest creditRequest);
+    BankResponse debitAccount(CreditDebitRequest debitRequest);
+
+
 
 
 

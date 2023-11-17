@@ -141,9 +141,47 @@ public class UserServiceImpl implements UserService {
                     .build();
 
     }
+//debit
+    @Override
+    public BankResponse debitAccount(CreditDebitRequest debitRequest) {
+        //check if the account exists
+        boolean isAccountExists = userRepo.existsByAccountNumber(debitRequest.getAccountNumber());
+        if(!isAccountExists){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.account_does_not_exist_code)
+                    .responseMessage(AccountUtils.account_does_not_exist_message)
+                    .accountInfo(null)
+                    .build();
+        }
+        User userToDebit = userRepo.findByAccountNumber(debitRequest.getAccountNumber());
+        if(debitRequest.getAmount().compareTo(userToDebit.getAccountBalance()) == 1){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.insufficient_balance_code)
+                    .responseMessage(AccountUtils.insufficient_balance_message)
+                    .accountInfo(null)
+                    .build();
+        }
+        else {
+
+            userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(debitRequest.getAmount()));
+            userRepo.save(userToDebit);
+
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.account_debited_code)
+                    .responseMessage(AccountUtils.account_debited_message)
+                    .accountInfo(AccountInfo.builder()
+                            .accountName(userToDebit.getFirstName()+" "+userToDebit.getLastName())
+                            .accountNumber(userToDebit.getAccountNumber())
+                            .accountBalance(userToDebit.getAccountBalance())
+                            .build())
+                    .build();
+        }
+    }
 
 
-    //,debit and transfer
+
+
+    // transfer
 
 
 }

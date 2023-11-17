@@ -14,6 +14,11 @@ public class AccountUtils {
     public static final String account_found_message = "Account found";
     public static final String account_credited_code="005";
     public static final String account_credited_message="Account has been successfully credited";
+    public static final String insufficient_balance_code="006";
+    public static final String insufficient_balance_message="Insufficient balance";
+    public static final String account_debited_code="007";
+    public static final String account_debited_message="Account has been successfully debited";
+
 
 
 
