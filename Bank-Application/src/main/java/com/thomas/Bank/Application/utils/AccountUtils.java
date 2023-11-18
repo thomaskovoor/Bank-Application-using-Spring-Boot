@@ -12,12 +12,18 @@ public class AccountUtils {
     public static final String account_does_not_exist_message ="Account does not exist";
     public static final String account_found_code = "003";
     public static final String account_found_message = "Account found";
-    public static final String account_credited_code="005";
+    public static final String account_credited_code="004";
     public static final String account_credited_message="Account has been successfully credited";
-    public static final String insufficient_balance_code="006";
+    public static final String insufficient_balance_code="005";
     public static final String insufficient_balance_message="Insufficient balance";
-    public static final String account_debited_code="007";
+    public static final String account_debited_code="006";
     public static final String account_debited_message="Account has been successfully debited";
+    public static final String credit_account_does_not_exist_code="007";
+    public static final String credit_account_does_not_exist_message ="Credit account does not exist";
+    public static final String debit_account_does_not_exist_code="008";
+    public static final String debit_account_does_not_exist_message ="Debit account does not exist";
+    public static final String transfer_successful_code="009";
+    public static final String transfer_successful_message="Transfer successful";
 
 
 

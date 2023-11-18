@@ -177,11 +177,81 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
     }
-
-
-
-
     // transfer
+    @Override
+    public BankResponse accountTransfer(TransferRequest transferRequest) {
+        //check if from account exists
+        boolean isFromAccountExists = userRepo.existsByAccountNumber(transferRequest.getFromAccountNumber());
+        //check if account to be credited exists
+        boolean isToAccountExists = userRepo.existsByAccountNumber(transferRequest.getToAccountNumber());
+
+        if(!isFromAccountExists){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.credit_account_does_not_exist_code)
+                    .responseMessage(AccountUtils.credit_account_does_not_exist_message)
+                    .accountInfo(null)
+                    .build();
+        }
+        if(!isToAccountExists){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.debit_account_does_not_exist_code)
+                    .responseMessage(AccountUtils.debit_account_does_not_exist_message)
+                    .accountInfo(null)
+                    .build();
+        }
+
+        //check if amount to be debited is greater than account balance
+
+        User userToDebit = userRepo.findByAccountNumber(transferRequest.getFromAccountNumber());
+        if(transferRequest.getAmount().compareTo(userToDebit.getAccountBalance()) == 1){
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.insufficient_balance_code)
+                    .responseMessage(AccountUtils.insufficient_balance_message)
+                    .accountInfo(null)
+                    .build();
+        }
+
+        else {
+            //debit from account
+            userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(transferRequest.getAmount()));
+            userRepo.save(userToDebit);
+            emailService.sendEmailAlert(EmailDetails.builder()
+                    .recipient(userToDebit.getEmail())
+                    .subject("Debit Alert")
+                    .messageBody("The following account :\n" +
+                            "Account Number :"+userToDebit.getAccountNumber()+"\n"+
+                             "Account Name :"+userToDebit.getFirstName()+" "+userToDebit.getLastName()+"\n"+
+                            "has been debited by the amount :"+transferRequest.getAmount()+"\n"+
+                             "The current balance is : "+userToDebit.getAccountBalance())
+                    .attachment(null)
+                    .build());
+
+
+            //credit account
+            User userToCredit = userRepo.findByAccountNumber(transferRequest.getToAccountNumber());
+            userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(transferRequest.getAmount()));
+            userRepo.save(userToCredit);
+
+            emailService.sendEmailAlert(EmailDetails.builder()
+                            .recipient(userToCredit.getEmail())
+                            .subject("Credit Alert")
+                            .messageBody("The following account :\n" +
+                                    "Account Number :"+userToCredit.getAccountNumber()+"\n"+
+                                    "Account Name :"+userToCredit.getFirstName()+" "+userToCredit.getLastName()+"\n"+
+                                    "has been credited by the amount :"+transferRequest.getAmount()+"\n"+
+                                    "The current balance is : "+userToCredit.getAccountBalance())
+                            .attachment(null)
+                    .build());
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.transfer_successful_code)
+                    .responseMessage(AccountUtils.transfer_successful_message)
+                    .accountInfo(null)
+                    .build();
+        }
+    }
+
+
+
 
 
 }
