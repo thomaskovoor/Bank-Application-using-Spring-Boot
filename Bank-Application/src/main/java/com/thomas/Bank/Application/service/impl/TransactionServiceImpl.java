@@ -4,7 +4,9 @@ import com.thomas.Bank.Application.dto.TransactionDetails;
 import com.thomas.Bank.Application.entity.Transaction;
 import com.thomas.Bank.Application.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class TransactionServiceImpl implements TransactionService {
 
     @Autowired

@@ -14,6 +14,8 @@ public class UserServiceImpl implements UserService {
     UserRepository userRepo;
     @Autowired
     EmailService emailService;
+    @Autowired
+    TransactionService transactionService;
     @Override
     public BankResponse createAccount(UserReq userReq) {
 
@@ -130,6 +132,15 @@ public class UserServiceImpl implements UserService {
         userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(creditRequest.getAmount()));
         userRepo.save(userToCredit);
 
+        //saving the transaction
+        TransactionDetails transactionDetails = TransactionDetails.builder()
+                .accountNumber(userToCredit.getAccountNumber())
+                .transactionType("CREDIT")
+                .amount(creditRequest.getAmount())
+                .status("Success")
+                .build();
+        transactionService.saveTransaction(transactionDetails);
+
             return BankResponse.builder()
                     .responseCode(AccountUtils.account_credited_code)
                     .responseMessage(AccountUtils.account_credited_message)
@@ -165,6 +176,15 @@ public class UserServiceImpl implements UserService {
 
             userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(debitRequest.getAmount()));
             userRepo.save(userToDebit);
+
+            //saving the transaction
+            TransactionDetails transactionDetails = TransactionDetails.builder()
+                    .accountNumber(userToDebit.getAccountNumber())
+                    .transactionType("DEBIT")
+                    .amount(debitRequest.getAmount())
+                    .status("Success")
+                    .build();
+            transactionService.saveTransaction(transactionDetails);
 
             return BankResponse.builder()
                     .responseCode(AccountUtils.account_debited_code)
@@ -242,6 +262,15 @@ public class UserServiceImpl implements UserService {
                                     "The current balance is : "+userToCredit.getAccountBalance())
                             .attachment(null)
                     .build());
+         //saving the transaction
+            TransactionDetails transactionDetails = TransactionDetails.builder()
+                    .accountNumber(userToCredit.getAccountNumber())
+                    .transactionType("CREDIT")
+                    .amount(transferRequest.getAmount())
+                    .status("Success")
+                    .build();
+            transactionService.saveTransaction(transactionDetails);
+
             return BankResponse.builder()
                     .responseCode(AccountUtils.transfer_successful_code)
                     .responseMessage(AccountUtils.transfer_successful_message)
