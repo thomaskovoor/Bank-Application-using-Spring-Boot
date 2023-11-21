@@ -3,6 +3,8 @@ package com.thomas.Bank.Application.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Getter
 @Setter
@@ -15,7 +17,7 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String transactionId;
     private String transactionType;
-    private String amount;
+    private BigDecimal amount;
     private String accountNumber;
     private String status;
 }
