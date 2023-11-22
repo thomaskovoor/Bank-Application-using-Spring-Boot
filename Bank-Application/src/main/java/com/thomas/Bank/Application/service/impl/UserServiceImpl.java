@@ -245,6 +245,13 @@ public class UserServiceImpl implements UserService {
                              "The current balance is : "+userToDebit.getAccountBalance())
                     .attachment(null)
                     .build());
+            TransactionDetails transactionDetailsDebit = TransactionDetails.builder()
+                    .accountNumber(userToDebit.getAccountNumber())
+                    .transactionType("DEBIT TRANSFER")
+                    .amount(transferRequest.getAmount())
+                    .status("Success")
+                    .build();
+            transactionService.saveTransaction(transactionDetailsDebit);
 
 
             //credit account
@@ -263,13 +270,13 @@ public class UserServiceImpl implements UserService {
                             .attachment(null)
                     .build());
          //saving the transaction
-            TransactionDetails transactionDetails = TransactionDetails.builder()
+            TransactionDetails transactionDetailsCredit = TransactionDetails.builder()
                     .accountNumber(userToCredit.getAccountNumber())
-                    .transactionType("CREDIT")
+                    .transactionType("CREDIT TRANSFER")
                     .amount(transferRequest.getAmount())
                     .status("Success")
                     .build();
-            transactionService.saveTransaction(transactionDetails);
+            transactionService.saveTransaction(transactionDetailsCredit);
 
             return BankResponse.builder()
                     .responseCode(AccountUtils.transfer_successful_code)
