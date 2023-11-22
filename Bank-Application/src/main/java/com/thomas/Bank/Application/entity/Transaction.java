@@ -2,6 +2,8 @@ package com.thomas.Bank.Application.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 
@@ -20,4 +22,8 @@ public class Transaction {
     private BigDecimal amount;
     private String accountNumber;
     private String status;
+    @CreationTimestamp
+    private String createdAt;
+    @UpdateTimestamp
+    private String modifiedAt;
 }
