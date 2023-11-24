@@ -6,7 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -24,7 +24,7 @@ public class Transaction {
     private String accountNumber;
     private String status;
     @CreationTimestamp
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
     @UpdateTimestamp
-    private LocalDate modifiedAt;
+    private LocalDateTime modifiedAt;
 }
