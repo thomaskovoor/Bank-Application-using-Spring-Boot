@@ -1,11 +1,20 @@
 package com.thomas.Bank.Application.service.impl;
 
 
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.thomas.Bank.Application.entity.Transaction;
 import com.thomas.Bank.Application.repository.TransactionRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -15,9 +24,11 @@ import java.util.List;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class BankStatement {
 
     private TransactionRepository transactionRepo;
+    private static final String FILE = "D:\\BankStatement\\MyStatement.pdf";
     public List<Transaction> generateBankStatement(String accountNumber, String fromDate, String toDate){
 
         //parsing string date to local date format yy-mm-dd and
@@ -36,5 +47,23 @@ public class BankStatement {
                 .toList();
 
     }
+    //design for the pdf
+    private void designBankStatement(List<Transaction> transactionList) throws FileNotFoundException {
+
+        Rectangle pageSize = new Rectangle(PageSize.A4); // size of page
+        Document document = new Document(pageSize);
+       try {
+           OutputStream outputStream = new FileOutputStream(FILE);
+           PdfWriter.getInstance(document,outputStream);
+           document.open();
+       }
+       catch (FileNotFoundException | DocumentException e){
+           log.info("File not found");
+       }
+
+
+
+    }
+
 
 }
