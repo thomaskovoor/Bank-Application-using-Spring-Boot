@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -66,70 +67,74 @@ public class BankStatement {
 
 
         User userInfo = userRepository.findByAccountNumber(accountNumber);
-        String userName = userInfo.getFirstName()+" "+userInfo.getLastName()+" "+userInfo.getLastName();
+        String userName = userInfo.getFirstName()+" "+userInfo.getLastName()+" "+userInfo.getOtherName();
         String userAddress = userInfo.getAddress();
+        BigDecimal accountBalance = userInfo.getAccountBalance();
+        for (int i = transactionList.size()-1; i >=0 ; i--) {
+            if (transactionList.get(i).getTransactionType().equals("CREDIT") ||
+                    transactionList.get(i).getTransactionType().equals("CREDIT TRANSFER")){
+                accountBalance = accountBalance.add(transactionList.get(i).getAmount());
+            }
+            else
+                accountBalance = accountBalance.subtract(transactionList.get(i).getAmount());
+        }
 
         //designing the heading
         PdfPTable heading = new PdfPTable(1);
-        PdfPCell headingName = new PdfPCell(new Phrase("TK Bank "));
-        headingName.setBorder(0);
+        PdfPCell headingName = new PdfPCell(new Phrase("TK Bank ",getHeaderFont()));
         headingName.setHorizontalAlignment(Element.ALIGN_CENTER);
         headingName.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        headingName.setBackgroundColor(new BaseColor(51, 102, 153));
+        headingName.setBackgroundColor(new BaseColor(209,204,220));
         headingName.setPadding(20f);
 
         //designing address space
         String address = "100 Park Avenue,India";
         String phNo="8075363994";
-        PdfPCell addressSpace = new PdfPCell(new Phrase(address+","+phNo));
-        addressSpace.setBorder(0);
+        PdfPCell addressSpace = new PdfPCell(new Phrase(address+","+phNo,getAddressFont()));
         addressSpace.setHorizontalAlignment(Element.ALIGN_CENTER);
         addressSpace.setVerticalAlignment(Element.ALIGN_MIDDLE);
         addressSpace.setPadding(10f);
 
         heading.addCell(headingName);
-        heading.addCell(address);
+        heading.addCell(addressSpace);
 
         PdfPTable accountInfo = new PdfPTable(2);
         accountInfo.setWidthPercentage(100);
-        PdfPCell fromDateInfo = new PdfPCell(new Phrase("From Date: "+fromDate));
-      //  fromDateInfo.setBorder(0);
-        PdfPCell statement = new PdfPCell(new Phrase("Statement of account"));
-      //  statement.setBorder(1);
-        PdfPCell toDateInfo = new PdfPCell(new Phrase("To Date: "+toDate));
-      //  toDateInfo.setBorder(0);
+        PdfPCell fromDateInfo = new PdfPCell(new Phrase("From Date: "+fromDate,getDateFont()));
+        PdfPCell statement = new PdfPCell(new Phrase("Statement of account",getTitleFont()));
+        PdfPCell toDateInfo = new PdfPCell(new Phrase("To Date: "+toDate,getDateFont()));
+
 
         accountInfo.addCell(fromDateInfo);
         accountInfo.addCell(statement);
         accountInfo.addCell(toDateInfo);
 
-        PdfPCell nameSpace = new PdfPCell(new Phrase("Customer Name: "+userName));
-      //  nameSpace.setBorder(0);
+        PdfPCell nameSpace = new PdfPCell(new Phrase("Customer Name: "+userName,getTitleFont()));
+
         PdfPCell space1=new PdfPCell();
-    //    space1.setBorder(0);
-        PdfPCell userAddressSpace = new PdfPCell(new Phrase(userAddress));
-      //  userAddressSpace.setBorder(0);
+        PdfPCell userAddressSpace = new PdfPCell(new Phrase(userAddress,getAddressFont()));
+
 
         accountInfo.addCell(nameSpace);
         accountInfo.addCell(space1);
         accountInfo.addCell(userAddressSpace);
 
-        PdfPTable transactionTable = new PdfPTable(4);
+        PdfPTable transactionTable = new PdfPTable(5);
         transactionTable.setWidthPercentage(100);
         transactionTable.setSpacingBefore(10f);
 
-        PdfPCell dateSpace = new PdfPCell(new Phrase("Date"));
+        PdfPCell dateSpace = new PdfPCell(new Phrase("Date",getTableHeaderFont()));
         dateSpace.setBackgroundColor(new BaseColor(173, 216, 230));
 
 
-        PdfPCell transactionType = new PdfPCell(new Phrase("Description"));
+        PdfPCell transactionType = new PdfPCell(new Phrase("Description",getTableHeaderFont()));
         transactionType.setBackgroundColor(new BaseColor(173, 216, 230));
 
-        PdfPCell amount = new PdfPCell(new Phrase("Amount"));
+        PdfPCell amount = new PdfPCell(new Phrase("Amount",getTableHeaderFont()));
         amount.setBackgroundColor(new BaseColor(173, 216, 230));
 
 
-        PdfPCell status = new PdfPCell(new Phrase("Status"));
+        PdfPCell status = new PdfPCell(new Phrase("Status",getTableHeaderFont()));
         status.setBackgroundColor(new BaseColor(173, 216, 230));
 
 
@@ -140,16 +145,14 @@ public class BankStatement {
         transactionTable.addCell(status);
 
 
+
         transactionList.forEach(transaction -> {
-                 transactionTable.addCell(new Phrase(transaction.getCreatedAt().toString()));
-                 transactionTable.addCell(new Phrase(transaction.getTransactionType()));
-                 transactionTable.addCell(new Phrase(transaction.getAmount().toString()));
-                 transactionTable.addCell(new Phrase(transaction.getStatus()));
+                 transactionTable.addCell(new Phrase(dateParser(transaction.getCreatedAt()),getTransactionTypeFont()));
+                 transactionTable.addCell(new Phrase(transaction.getTransactionType(),getTransactionTypeFont()));
+                 transactionTable.addCell(new Phrase(transaction.getAmount().toString(),getTableCellFont(transaction.getTransactionType())));
+                 transactionTable.addCell(new Phrase(transaction.getStatus(),getTransactionTypeFont()));
 
         });
-
-
-
 
 
         document.add(heading);
@@ -158,6 +161,44 @@ public class BankStatement {
 
         document.close();
 
+    }
+    private Font getHeaderFont() {
+        return new Font(Font.FontFamily.HELVETICA, 22, Font.BOLD, BaseColor.BLACK);
+    }
+
+    private Font getTitleFont() {
+        return new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD, BaseColor.BLACK);
+    }
+
+    private Font getAddressFont() {
+        return new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.BLACK);
+    }
+
+    private Font getDateFont() {
+        return new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.DARK_GRAY);
+    }
+
+    private Font getTableHeaderFont() {
+        return new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
+    }
+    private Font getTransactionTypeFont(){
+        return new Font(Font.FontFamily.TIMES_ROMAN,12,Font.NORMAL,BaseColor.BLACK);
+    }
+
+    private Font getTableCellFont(String transactionType) {
+        Font font = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.BLACK);
+        if (transactionType.equals("CREDIT") || transactionType.equals("CREDIT TRANSFER")){
+            font.setColor(BaseColor.GREEN);
+        }
+        else
+            font.setColor(BaseColor.RED);
+
+        return font;
+    }
+    private String dateParser(LocalDateTime originalDate){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        return originalDate.format(formatter);
     }
 
 
