@@ -5,6 +5,7 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.thomas.Bank.Application.dto.EmailDetails;
 import com.thomas.Bank.Application.entity.Transaction;
 import com.thomas.Bank.Application.entity.User;
 import com.thomas.Bank.Application.repository.TransactionRepository;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -31,6 +33,7 @@ public class BankStatement {
 
     private TransactionRepository transactionRepo;
     private UserRepository userRepository;
+    private EmailService emailService;
     private static final String FILE = "D:\\BankStatement\\MyStatement.pdf";
     public List<Transaction> generateBankStatement(String accountNumber, String fromDate, String toDate) throws DocumentException, FileNotFoundException {
 
@@ -69,15 +72,8 @@ public class BankStatement {
         User userInfo = userRepository.findByAccountNumber(accountNumber);
         String userName = userInfo.getFirstName()+" "+userInfo.getLastName()+" "+userInfo.getOtherName();
         String userAddress = userInfo.getAddress();
-        BigDecimal accountBalance = userInfo.getAccountBalance();
-        for (int i = transactionList.size()-1; i >=0 ; i--) {
-            if (transactionList.get(i).getTransactionType().equals("CREDIT") ||
-                    transactionList.get(i).getTransactionType().equals("CREDIT TRANSFER")){
-                accountBalance = accountBalance.add(transactionList.get(i).getAmount());
-            }
-            else
-                accountBalance = accountBalance.subtract(transactionList.get(i).getAmount());
-        }
+
+        BigDecimal initialBalance = transactionList.get(0).getAmount();
 
         //designing the heading
         PdfPTable heading = new PdfPTable(1);
@@ -95,27 +91,34 @@ public class BankStatement {
         addressSpace.setVerticalAlignment(Element.ALIGN_MIDDLE);
         addressSpace.setPadding(10f);
 
+        PdfPCell statement = new PdfPCell(new Phrase("Statement of account",getTitleFont()));
+        statement.setHorizontalAlignment(Element.ALIGN_CENTER);
+        statement.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        statement.setPadding(10f);
+
         heading.addCell(headingName);
         heading.addCell(addressSpace);
+        heading.addCell(statement);
 
         PdfPTable accountInfo = new PdfPTable(2);
         accountInfo.setWidthPercentage(100);
         PdfPCell fromDateInfo = new PdfPCell(new Phrase("From Date: "+fromDate,getDateFont()));
-        PdfPCell statement = new PdfPCell(new Phrase("Statement of account",getTitleFont()));
         PdfPCell toDateInfo = new PdfPCell(new Phrase("To Date: "+toDate,getDateFont()));
 
 
-        accountInfo.addCell(fromDateInfo);
-        accountInfo.addCell(statement);
-        accountInfo.addCell(toDateInfo);
 
-        PdfPCell nameSpace = new PdfPCell(new Phrase("Customer Name: "+userName,getTitleFont()));
 
+        PdfPCell nameSpace = new PdfPCell(new Phrase("Customer Name: "+userName,getAddressFont()));
+
+        PdfPCell accountNumberSpace = new PdfPCell(new Phrase("Account Number: "+userInfo.getAccountNumber()));
         PdfPCell space1=new PdfPCell();
-        PdfPCell userAddressSpace = new PdfPCell(new Phrase(userAddress,getAddressFont()));
 
+        PdfPCell userAddressSpace = new PdfPCell(new Phrase(userAddress+","+userInfo.getPhoneNumber(),getAddressFont()));
 
+        accountInfo.addCell(fromDateInfo);
         accountInfo.addCell(nameSpace);
+        accountInfo.addCell(toDateInfo);
+        accountInfo.addCell(accountNumberSpace);
         accountInfo.addCell(space1);
         accountInfo.addCell(userAddressSpace);
 
@@ -137,29 +140,53 @@ public class BankStatement {
         PdfPCell status = new PdfPCell(new Phrase("Status",getTableHeaderFont()));
         status.setBackgroundColor(new BaseColor(173, 216, 230));
 
+        PdfPCell balance = new PdfPCell(new Phrase("Account Balance",getTableHeaderFont()));
+        balance.setBackgroundColor(new BaseColor(173, 216, 230));
+
 
 
         transactionTable.addCell(dateSpace);
         transactionTable.addCell(transactionType);
         transactionTable.addCell(amount);
         transactionTable.addCell(status);
+        transactionTable.addCell(balance);
 
 
+      ArrayList<BigDecimal> accountBalanceList = new ArrayList<>();
+        accountBalanceList.add(initialBalance);
 
-        transactionList.forEach(transaction -> {
-                 transactionTable.addCell(new Phrase(dateParser(transaction.getCreatedAt()),getTransactionTypeFont()));
-                 transactionTable.addCell(new Phrase(transaction.getTransactionType(),getTransactionTypeFont()));
-                 transactionTable.addCell(new Phrase(transaction.getAmount().toString(),getTableCellFont(transaction.getTransactionType())));
-                 transactionTable.addCell(new Phrase(transaction.getStatus(),getTransactionTypeFont()));
+        for (int j = 1; j < transactionList.size(); j++) {
+            if(transactionList.get(j).getTransactionType().equals("CREDIT") || transactionList.get(j).getTransactionType().equals("CREDIT TRANSFER"))
+                accountBalanceList.add(accountBalanceList.get(j-1).add(transactionList.get(j).getAmount()));
+            else
+                accountBalanceList.add(accountBalanceList.get(j-1).subtract(transactionList.get(j).getAmount()));
+        }
+        int i=0;
+        for (Transaction transaction : transactionList) {
 
-        });
+            transactionTable.addCell(new Phrase(dateParser(transaction.getCreatedAt()),getTransactionTypeFont()));
+            transactionTable.addCell(new Phrase(transaction.getTransactionType(),getTransactionTypeFont()));
+            transactionTable.addCell(new Phrase(transaction.getAmount().toString(),getTableCellFont(transaction.getTransactionType())));
+            transactionTable.addCell(new Phrase(transaction.getStatus(),getTransactionTypeFont()));
 
+            transactionTable.addCell(new Phrase(accountBalanceList.get(i++).toString()));
+
+        }
 
         document.add(heading);
         document.add(accountInfo);
         document.add(transactionTable);
 
+
         document.close();
+        EmailDetails emailDetails = EmailDetails.builder()
+                .recipient(userInfo.getEmail())
+                .subject("Statement of Account")
+                .messageBody("Kindly find your account statement below")
+                .attachment(FILE)
+                .build();
+
+        emailService.sendEmailWithAttachment(emailDetails);
 
     }
     private Font getHeaderFont() {

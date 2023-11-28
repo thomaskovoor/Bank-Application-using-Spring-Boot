@@ -1,5 +1,6 @@
 package com.thomas.Bank.Application.controller;
 
+import com.itextpdf.text.DocumentException;
 import com.thomas.Bank.Application.entity.Transaction;
 import com.thomas.Bank.Application.service.impl.BankStatement;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 
 @RestController
@@ -16,7 +18,7 @@ import java.util.List;
 public class BankStatementController {
     private BankStatement bankStatement;
     @GetMapping("generate")
-    public List<Transaction> getBankStatement(@RequestParam String accountNumber,@RequestParam String fromDate,@RequestParam String toDate){
+    public List<Transaction> getBankStatement(@RequestParam String accountNumber,@RequestParam String fromDate,@RequestParam String toDate) throws FileNotFoundException, DocumentException {
         return bankStatement.generateBankStatement(accountNumber, fromDate, toDate);
     }
 }
