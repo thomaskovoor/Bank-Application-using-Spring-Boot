@@ -24,6 +24,7 @@ public class User {
     private String gender;
     private String address;
     private String email;
+    private String password;
     private String location;
     private String accountNumber;
     private String phoneNumber;
