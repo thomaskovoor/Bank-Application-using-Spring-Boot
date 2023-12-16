@@ -21,4 +21,5 @@ public class UserReq {
     private String location;
     private String phoneNumber;
     private String alternativePhoneNumber;
+    private String role;
 }

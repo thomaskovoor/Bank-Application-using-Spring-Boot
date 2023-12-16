@@ -1,8 +1,6 @@
 package com.thomas.Bank.Application.service.impl;
 
-import com.thomas.Bank.Application.dto.BankResponse;
 import com.thomas.Bank.Application.dto.EmailDetails;
-import com.thomas.Bank.Application.dto.UserReq;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
