@@ -1,9 +1,14 @@
 package com.thomas.Bank.Application.service.impl;
+import com.thomas.Bank.Application.config.JwtTokenProvider;
 import com.thomas.Bank.Application.dto.*;
+import com.thomas.Bank.Application.entity.Role;
 import com.thomas.Bank.Application.entity.User;
 import com.thomas.Bank.Application.repository.UserRepository;
 import com.thomas.Bank.Application.utils.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +23,10 @@ public class UserServiceImpl implements UserService {
     PasswordEncoder passwordEncoder;
     @Autowired
     TransactionService transactionService;
+    @Autowired
+    AuthenticationManager authenticationManager;
+    @Autowired
+    JwtTokenProvider jwtTokenProvider;
     @Override
     public BankResponse createAccount(UserReq userReq) {
 
@@ -48,6 +57,7 @@ public class UserServiceImpl implements UserService {
                    .phoneNumber(userReq.getPhoneNumber())
                    .accountBalance(BigDecimal.ZERO)
                    .status("ACTIVE")
+                   .role(Role.valueOf(userReq.getRole()))
                    .build();
 
            User savedUser = userRepo.save(newUser);
@@ -79,6 +89,20 @@ public class UserServiceImpl implements UserService {
                    .build();
        }
     }
+
+
+    public BankResponse accountLogin(LoginRequest loginRequest){
+        Authentication authentication;
+        authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),loginRequest.getPassword())
+        );
+        return BankResponse.builder()
+                .responseCode(AccountUtils.login_code)
+                .responseMessage(jwtTokenProvider.generateToken(authentication))
+                .build();
+
+    }
+
     //balance enquiry
     @Override
     public BankResponse balanceEnquiry(EnquiryRequest enquiryRequest) {
