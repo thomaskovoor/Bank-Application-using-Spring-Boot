@@ -90,4 +90,9 @@ public class UserController {
     )
     @PostMapping("transfer")
     public BankResponse accountTransfer(@RequestBody TransferRequest transferRequest){return userService.accountTransfer(transferRequest);}
+
+    @PostMapping("login")
+    public BankResponse accountLogin(@RequestBody LoginRequest loginRequest){
+        return userService.accountLogin(loginRequest);
+    }
 }
