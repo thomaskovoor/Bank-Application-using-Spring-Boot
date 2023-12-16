@@ -25,6 +25,9 @@ public class AccountUtils {
     public static final String transfer_successful_code="009";
     public static final String transfer_successful_message="Transfer successful";
 
+    public static final String login_code="010";
+    public static final String login_message="Successfully logged in";
+
 
 
 
